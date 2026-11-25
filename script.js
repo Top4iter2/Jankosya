@@ -1,312 +1,392 @@
-/* ============================================================
-   КИНО-ПРИГЛАШЕНИЕ · Vanilla JS
-   1. Интро → контент
-   2. 3D-наклон билета (touchmove + DeviceOrientation)
-   3. Чипы бонусов
-   4. Кнопка «Подумаю...» уворачивается
-   5. Салют из сердечек и золотого конфетти (Canvas)
-   ============================================================ */
+/* =========================================================
+   0. UTILS
+   ========================================================= */
+document.documentElement.classList.add("js");
 
-"use strict";
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-const $ = (sel) => document.querySelector(sel);
-
-/* ============ 1. ИНТРО ============ */
+/* =========================================================
+   1. INTRO → MAIN TRANSITION
+   ========================================================= */
 const intro = $("#intro");
-const content = $("#content");
+const main = $("#main");
 const openBtn = $("#openBtn");
 
 openBtn.addEventListener("click", () => {
-  intro.style.transition = "opacity 0.9s cubic-bezier(0.22,1,0.36,1), transform 0.9s cubic-bezier(0.22,1,0.36,1)";
-  intro.style.opacity = "0";
-  intro.style.transform = "scale(1.06)";
-  intro.style.pointerEvents = "none";
+  intro.classList.add("fade-out");
+  requestOrientationPermission();
 
   setTimeout(() => {
-    intro.remove();
-    content.hidden = false;
-    // Перезапуск анимаций появления для контента
-    content.querySelectorAll(".section").forEach((s, i) => {
-      s.style.opacity = "0";
-      s.style.transform = "translateY(30px)";
-      s.style.transition = `opacity 0.9s ${0.12 * i}s cubic-bezier(0.22,1,0.36,1), transform 0.9s ${0.12 * i}s cubic-bezier(0.22,1,0.36,1)`;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          s.style.opacity = "1";
-          s.style.transform = "translateY(0)";
-        });
-      });
-    });
-    // Запрос разрешения на гироскоп для iOS 13+ (нужен жест пользователя)
-    requestGyroPermission();
+    intro.style.display = "none";
+    main.classList.add("active");
+    window.scrollTo(0, 0);
+    initRevealObserver();
   }, 700);
 });
 
-/* ============ 2. 3D-НАКЛОН БИЛЕТА ============ */
+/* =========================================================
+   2. TICKET 3D TILT (touch + mouse + device orientation)
+   ========================================================= */
 const ticket = $("#ticket");
-const MAX_TILT = 14;
 
-function setTilt(rx, ry, mx, my) {
-  ticket.style.transform =
-    `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-  ticket.style.setProperty("--mx", `${mx.toFixed(1)}%`);
-  ticket.style.setProperty("--my", `${my.toFixed(1)}%`);
-  ticket.style.setProperty("--shine", "0.75");
-}
+// Target vs current values (eased in rAF loop)
+const target = { rx: 0, ry: 0, mx: 50, my: 50 };
+const current = { rx: 0, ry: 0, mx: 50, my: 50 };
 
-function resetTilt() {
-  ticket.style.transform = "rotateX(0deg) rotateY(0deg)";
-  ticket.style.setProperty("--shine", "0.35");
-}
+let touchActive = false;
+let orientationActive = false;
+let orientationBase = null;
 
-// — На пальце: touchmove по билету —
-ticket.addEventListener("touchmove", (e) => {
-  e.preventDefault();
-  const rect = ticket.getBoundingClientRect();
-  const x = e.touches[0].clientX - rect.left;
-  const y = e.touches[0].clientY - rect.top;
-  const px = Math.min(Math.max(x / rect.width, 0), 1);
-  const py = Math.min(Math.max(y / rect.height, 0), 1);
-  setTilt((py - 0.5) * -2 * MAX_TILT, (px - 0.5) * 2 * MAX_TILT, px * 100, py * 100);
-}, { passive: false });
+// Infinite easing loop → smooth, buttery motion
+(function loop() {
+  current.rx += (target.rx - current.rx) * 0.12;
+  current.ry += (target.ry - current.ry) * 0.12;
+  current.mx += (target.mx - current.mx) * 0.12;
+  current.my += (target.my - current.my) * 0.12;
 
-ticket.addEventListener("touchend", resetTilt);
+  ticket.style.transform = `rotateX(${current.rx.toFixed(2)}deg) rotateY(${current.ry.toFixed(2)}deg)`;
+  ticket.style.setProperty("--mx", current.mx.toFixed(2) + "%");
+  ticket.style.setProperty("--my", current.my.toFixed(2) + "%");
 
-// — Мышью (для десктопа) —
+  requestAnimationFrame(loop);
+})();
+
+/* -------- Touch -------- */
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+ticket.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length !== 1) return;
+    touchActive = true;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  },
+  { passive: true }
+);
+
+ticket.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!touchActive || e.touches.length !== 1) return;
+
+    const t = e.touches[0];
+    const dx = Math.abs(t.clientX - touchStartX);
+    const dy = Math.abs(t.clientY - touchStartY);
+
+    // If user is clearly scrolling vertically — don't tilt
+    if (dy > dx && dy > 30) return;
+
+    const rect = ticket.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    target.rx = -((t.clientY - cy) / rect.height) * 20; // ±10deg
+    target.ry = ((t.clientX - cx) / rect.width) * 20;
+
+    target.mx = ((t.clientX - rect.left) / rect.width) * 100;
+    target.my = ((t.clientY - rect.top) / rect.height) * 100;
+  },
+  { passive: true }
+);
+
+ticket.addEventListener(
+  "touchend",
+  () => {
+    touchActive = false;
+    // Gently return to rest if no orientation is driving
+    if (!orientationActive) {
+      target.rx = 0;
+      target.ry = 0;
+      target.mx = 50;
+      target.my = 50;
+    }
+  },
+  { passive: true }
+);
+
+/* -------- Mouse -------- */
 ticket.addEventListener("mousemove", (e) => {
   const rect = ticket.getBoundingClientRect();
-  const px = (e.clientX - rect.left) / rect.width;
-  const py = (e.clientY - rect.top) / rect.height;
-  setTilt((py - 0.5) * -2 * MAX_TILT, (px - 0.5) * 2 * MAX_TILT, px * 100, py * 100);
-});
-ticket.addEventListener("mouseleave", resetTilt);
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
 
-// — Гироскоп: DeviceOrientation —
-function requestGyroPermission() {
-  if (typeof DeviceOrientationEvent === "undefined") return;
-  if (typeof DeviceOrientationEvent.requestPermission === "function") {
-    // iOS 13+: спрашиваем разрешение (мы внутри обработчика жеста)
+  target.rx = -((e.clientY - cy) / rect.height) * 18;
+  target.ry = ((e.clientX - cx) / rect.width) * 18;
+  target.mx = ((e.clientX - rect.left) / rect.width) * 100;
+  target.my = ((e.clientY - rect.top) / rect.height) * 100;
+  touchActive = true;
+});
+
+ticket.addEventListener("mouseleave", () => {
+  touchActive = false;
+  if (!orientationActive) {
+    target.rx = 0;
+    target.ry = 0;
+    target.mx = 50;
+    target.my = 50;
+  }
+});
+
+/* -------- Device Orientation -------- */
+function handleOrientation(e) {
+  if (touchActive) return;
+  if (e.gamma === null || e.beta === null) return;
+
+  orientationActive = true;
+
+  if (!orientationBase) {
+    orientationBase = { beta: e.beta, gamma: e.gamma };
+  }
+
+  const dBeta = e.beta - orientationBase.beta;
+  const dGamma = e.gamma - orientationBase.gamma;
+
+  // Clamp to reasonable range
+  const rx = Math.max(-15, Math.min(15, -dBeta * 0.4));
+  const ry = Math.max(-15, Math.min(15, dGamma * 0.6));
+
+  target.rx = rx;
+  target.ry = ry;
+  target.mx = 50 + ry * 3;
+  target.my = 50 + rx * 3;
+}
+
+function requestOrientationPermission() {
+  if (
+    typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission === "function"
+  ) {
     DeviceOrientationEvent.requestPermission()
-      .then((res) => { if (res === "granted") startGyro(); })
-      .catch(() => {});
-  } else {
-    startGyro();
+      .then((state) => {
+        if (state === "granted") {
+          window.addEventListener("deviceorientation", handleOrientation);
+        }
+      })
+      .catch(() => {
+        /* Silently fall back to touch tilt */
+      });
+  } else if (window.DeviceOrientationEvent) {
+    window.addEventListener("deviceorientation", handleOrientation);
   }
 }
 
-let gyroActive = false;
-function startGyro() {
-  if (gyroActive) return;
-  gyroActive = true;
-  let targetRX = 0, targetRY = 0, curRX = 0, curRY = 0;
-
-  window.addEventListener("deviceorientation", (e) => {
-    if (e.beta === null || e.gamma === null) return;
-    // beta: наклон вперёд/назад (-180..180), gamma: влево/вправо (-90..90)
-    targetRX = Math.max(-MAX_TILT, Math.min(MAX_TILT, (e.beta - 45) * 0.35));
-    targetRY = Math.max(-MAX_TILT, Math.min(MAX_TILT, e.gamma * 0.5));
-    const mx = 50 + targetRY * 3;
-    const my = 50 - targetRX * 3;
-    ticket.style.setProperty("--mx", `${Math.max(0, Math.min(100, mx))}%`);
-    ticket.style.setProperty("--my", `${Math.max(0, Math.min(100, my))}%`);
-    ticket.style.setProperty("--shine", "0.7");
+/* =========================================================
+   3. BONUS CHIPS
+   ========================================================= */
+$$(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    chip.classList.toggle("active");
+    if (navigator.vibrate) navigator.vibrate(20);
   });
-
-  // Плавная интерполяция (lerp), чтобы наклон не дёргался
-  (function animateGyro() {
-    curRX += (targetRX - curRX) * 0.08;
-    curRY += (targetRY - curRY) * 0.08;
-    if (!ticket.matches(":hover") && !touchingTicket) {
-      ticket.style.transform =
-        `rotateX(${curRX.toFixed(2)}deg) rotateY(${curRY.toFixed(2)}deg)`;
-    }
-    requestAnimationFrame(animateGyro);
-  })();
-}
-
-let touchingTicket = false;
-ticket.addEventListener("touchstart", () => { touchingTicket = true; });
-ticket.addEventListener("touchend", () => { touchingTicket = false; });
-
-/* ============ 3. ЧИПЫ БОНУСОВ ============ */
-const chips = $("#chips");
-chips.addEventListener("click", (e) => {
-  const chip = e.target.closest(".chip");
-  if (!chip) return;
-  chip.classList.toggle("is-selected");
-  if (navigator.vibrate) navigator.vibrate(12); // мягкая тактильная отдача
 });
 
-function getSelectedBonuses() {
-  return [...chips.querySelectorAll(".chip.is-selected")].map((c) => c.textContent.trim());
+/* =========================================================
+   4. FINAL: YES / NO
+   ========================================================= */
+const yesBtn = $("#yesBtn");
+const noBtn = $("#noBtn");
+const finalSection = $("#finalSection");
+const confirmedSection = $("#confirmedSection");
+const msgBtn = $("#msgBtn");
+
+const NO_MESSAGES = [
+  "Подумаю...",
+  "Ошибка, такой опции нет 😌",
+  "Точно-точно подумаешь?",
+  "Ну пожалуйста 🥺",
+  "Ладно, соглашайся уже!",
+];
+let noCount = 0;
+
+noBtn.addEventListener("click", () => {
+  noCount++;
+  const idx = Math.min(noCount, NO_MESSAGES.length - 1);
+  noBtn.textContent = NO_MESSAGES[idx];
+
+  const x = (Math.random() - 0.5) * 160;
+  const y = (Math.random() - 0.5) * 80;
+  const rot = (Math.random() - 0.5) * 20;
+  noBtn.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+
+  if (navigator.vibrate) navigator.vibrate(15);
+});
+
+yesBtn.addEventListener("click", () => {
+  finalSection.classList.add("hidden");
+  confirmedSection.classList.remove("hidden");
+
+  // Sweet haptic
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 120]);
+
+  // Triple confetti burst
+  burstConfetti();
+  setTimeout(burstConfetti, 450);
+  setTimeout(burstConfetti, 900);
+
+  setTimeout(() => {
+    confirmedSection.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 350);
+});
+
+/* Pre-filled message link */
+const prefillText = encodeURIComponent(
+  "Привет! ❤️ Я принимаю твоё VIP-приглашение в кино 🍿✨ Уже не могу дождаться 🥰"
+);
+msgBtn.href = `https://wa.me/?text=${prefillText}`;
+
+/* =========================================================
+   5. CONFETTI (hearts + gold sparkles, vanilla Canvas)
+   ========================================================= */
+const canvas = $("#confetti");
+const ctx = canvas.getContext("2d");
+
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+function resizeCanvas() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+const particles = [];
+const PALETTE = [
+  "#E8C382",
+  "#D4A661",
+  "#F5E5C8",
+  "#D96B8E",
+  "#F2A7BE",
+  "#B8893E",
+  "#FFD9A0",
+  "#8B1538",
+];
+
+function spawnParticle() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const isHeart = Math.random() < 0.6;
+
+  particles.push({
+    x: W / 2 + (Math.random() - 0.5) * 140,
+    y: H * 0.44 + (Math.random() - 0.5) * 80,
+    vx: (Math.random() - 0.5) * 16,
+    vy: -Math.random() * 15 - 4,
+    size: 7 + Math.random() * 11,
+    color: PALETTE[(Math.random() * PALETTE.length) | 0],
+    rotation: Math.random() * Math.PI * 2,
+    vr: (Math.random() - 0.5) * 0.4,
+    life: 1,
+    decay: 0.0055 + Math.random() * 0.006,
+    isHeart,
+    gravity: 0.24 + Math.random() * 0.2,
+    swayOffset: Math.random() * Math.PI * 2,
+    swayAmp: 0.4 + Math.random() * 1.6,
+    swaySpeed: 0.025 + Math.random() * 0.04,
+  });
 }
 
-/* ============ 4. КНОПКА «ПОДУМАЮ...» ============ */
-const maybeBtn = $("#maybeBtn");
-const finalBtns = $("#finalBtns");
-let dodgeCount = 0;
-const dodgeTexts = ["Подумаю...", "Точно подумаешь? 😏", "А может всё-таки «Да»?", "Ошибка, такой опции нет 😌"];
+let animationRunning = false;
+let swayTime = 0;
 
-function dodge() {
-  dodgeCount++;
-  const zone = finalBtns.getBoundingClientRect();
-  const btnW = maybeBtn.offsetWidth;
-  const btnH = maybeBtn.offsetHeight;
-  const pad = 6;
-
-  const maxX = Math.max(0, zone.width - btnW - pad * 2);
-  const maxY = Math.max(0, zone.height - btnH - pad * 2);
-  const x = pad + Math.random() * maxX;
-  const y = pad + Math.random() * maxY;
-
-  maybeBtn.style.position = "absolute";
-  maybeBtn.style.left = `${x}px`;
-  maybeBtn.style.top = `${y}px`;
-  maybeBtn.textContent = dodgeTexts[Math.min(dodgeCount, dodgeTexts.length - 1)];
-
-  if (dodgeCount >= 3) {
-    // Не даём «поймать» кнопку — она убегает от любого приближения
-    maybeBtn.style.opacity = "0.75";
+function burstConfetti() {
+  for (let i = 0; i < 90; i++) spawnParticle();
+  if (!animationRunning) {
+    animationRunning = true;
+    animateConfetti();
   }
 }
 
-// Уворачивается при попытке нажать (на пальце и курсоре)
-maybeBtn.addEventListener("touchstart", (e) => { e.preventDefault(); dodge(); }, { passive: false });
-maybeBtn.addEventListener("mouseenter", dodge);
-maybeBtn.addEventListener("click", (e) => { e.preventDefault(); dodge(); });
-
-/* ============ 5. САЛЮТ ИЗ СЕРДЕЧЕК + ПОДТВЕРЖДЕНИЕ ============ */
-const yesBtn = $("#yesBtn");
-const overlay = $("#overlay");
-const confettiCanvas = $("#confetti");
-const bonusSummary = $("#bonusSummary");
-const tgLink = $("#tgLink");
-
-let confettiRAF = null;
-
-function drawHeart(ctx, size, color) {
+function drawHeart(s) {
+  const scale = s / 16;
   ctx.beginPath();
-  const s = size;
-  ctx.moveTo(0, s * 0.3);
-  ctx.bezierCurveTo(0, 0, -s * 0.5, 0, -s * 0.5, s * 0.3);
-  ctx.bezierCurveTo(-s * 0.5, s * 0.62, 0, s * 0.85, 0, s * 1.1);
-  ctx.bezierCurveTo(0, s * 0.85, s * 0.5, s * 0.62, s * 0.5, s * 0.3);
-  ctx.bezierCurveTo(s * 0.5, 0, 0, 0, 0, s * 0.3);
-  ctx.closePath();
-  ctx.fillStyle = color;
+  ctx.moveTo(0, -3 * scale);
+  ctx.bezierCurveTo(-3 * scale, -6 * scale, -8 * scale, -6 * scale, -8 * scale, 0);
+  ctx.bezierCurveTo(-8 * scale, 4 * scale, 0, 10 * scale, 0, 12 * scale);
+  ctx.bezierCurveTo(0, 10 * scale, 8 * scale, 4 * scale, 8 * scale, 0);
+  ctx.bezierCurveTo(8 * scale, -6 * scale, 3 * scale, -6 * scale, 0, -3 * scale);
   ctx.fill();
 }
 
-function launchConfetti() {
-  const ctx = confettiCanvas.getContext("2d");
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const W = (confettiCanvas.width = window.innerWidth * dpr);
-  const H = (confettiCanvas.height = window.innerHeight * dpr);
-  ctx.scale(dpr, dpr);
-  const w = window.innerWidth, h = window.innerHeight;
-
-  const COLORS = ["#f6c86b", "#ff4d7e", "#a06bff", "#ffd9e4", "#ffe9b8", "#ff85a2"];
-  const HEART_COLORS = ["#ff4d7e", "#ff85a2", "#ff2d63", "#f6c86b"];
-
-  const particles = [];
-  const spawn = (cx, cy, count, type) => {
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = type === "heart" ? 7 + Math.random() * 6 : 4 + Math.random() * 9;
-      particles.push({
-        x: cx, y: cy,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - (type === "heart" ? 4 : 2),
-        size: type === "heart" ? 8 + Math.random() * 10 : 5 + Math.random() * 7,
-        rot: Math.random() * Math.PI * 2,
-        vr: (Math.random() - 0.5) * 0.3,
-        type,
-        color: type === "heart"
-          ? HEART_COLORS[(Math.random() * HEART_COLORS.length) | 0]
-          : COLORS[(Math.random() * COLORS.length) | 0],
-        life: 1,
-        decay: 0.004 + Math.random() * 0.006,
-        wobble: Math.random() * Math.PI * 2,
-      });
-    }
-  };
-
-  // Три волны залпов: сердца + золотое конфетти
-  spawn(w / 2, h * 0.55, 60, "heart");
-  spawn(w / 2, h * 0.55, 90, "confetti");
-  setTimeout(() => { spawn(w * 0.25, h * 0.4, 40, "heart"); spawn(w * 0.75, h * 0.4, 60, "confetti"); }, 450);
-  setTimeout(() => { spawn(w / 2, h * 0.3, 40, "heart"); spawn(w / 2, h * 0.3, 60, "confetti"); }, 900);
-
-  if (navigator.vibrate) navigator.vibrate([30, 60, 30]);
-
-  function tick() {
-    ctx.clearRect(0, 0, w, h);
-    let alive = false;
-
-    for (const p of particles) {
-      if (p.life <= 0) continue;
-      alive = true;
-
-      p.vy += p.type === "heart" ? 0.09 : 0.14;      // гравитация
-      p.vx *= 0.99;
-      p.vy *= 0.995;
-      p.wobble += 0.08;
-      p.x += p.vx + Math.sin(p.wobble) * 0.6;
-      p.y += p.vy;
-      p.rot += p.vr;
-      p.life -= p.decay;
-
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      if (p.type === "heart") {
-        drawHeart(ctx, p.size, p.color);
-      } else {
-        // золотая фольга — переливающийся прямоугольник
-        ctx.fillStyle = p.color;
-        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-        ctx.globalAlpha = Math.max(0, p.life) * 0.5;
-        ctx.fillStyle = "rgba(255,255,255,0.6)";
-        ctx.fillRect(-p.size / 2, -p.size / 4, p.size * 0.4, p.size / 2);
-      }
-      ctx.restore();
-    }
-
-    if (alive) {
-      confettiRAF = requestAnimationFrame(tick);
-    } else {
-      ctx.clearRect(0, 0, w, h);
-      confettiRAF = null;
-    }
-  }
-
-  if (confettiRAF) cancelAnimationFrame(confettiRAF);
-  tick();
+function drawDiamond(s) {
+  ctx.beginPath();
+  ctx.moveTo(0, -s / 2);
+  ctx.lineTo(s / 3, 0);
+  ctx.lineTo(0, s / 2);
+  ctx.lineTo(-s / 3, 0);
+  ctx.closePath();
+  ctx.fill();
 }
 
-yesBtn.addEventListener("click", () => {
-  const bonuses = getSelectedBonuses();
-  if (bonuses.length) {
-    bonusSummary.hidden = false;
-    bonusSummary.innerHTML = `Ваш бонус-пакет: <b>${bonuses.join(" · ")}</b>`;
+function animateConfetti() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  ctx.clearRect(0, 0, W, H);
+  swayTime += 1;
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+
+    p.vy += p.gravity;
+    p.vx *= 0.985;
+    p.x += p.vx + Math.sin(swayTime * p.swaySpeed + p.swayOffset) * p.swayAmp;
+    p.y += p.vy;
+    p.rotation += p.vr;
+    p.life -= p.decay;
+
+    if (p.life <= 0 || p.y > H + 60 || p.x < -60 || p.x > W + 60) {
+      particles.splice(i, 1);
+      continue;
+    }
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.6));
+    ctx.fillStyle = p.color;
+    if (p.isHeart) drawHeart(p.size);
+    else drawDiamond(p.size);
+    ctx.restore();
   }
-  // Предзаполненный текст в ссылке Telegram
-  const msg = encodeURIComponent(
-    `Да, я согласна! 💛 Жду наш поход в кино${bonuses.length ? ` — беру с собой: ${bonuses.join(", ")}` : ""}! Спасибо за такое красивое приглашение ✨`
+
+  if (particles.length > 0) {
+    requestAnimationFrame(animateConfetti);
+  } else {
+    animationRunning = false;
+    ctx.clearRect(0, 0, W, H);
+  }
+}
+
+/* =========================================================
+   6. SCROLL REVEAL (subtle fade-in for sections)
+   ========================================================= */
+function initRevealObserver() {
+  if (!("IntersectionObserver" in window)) {
+    $$(".reveal").forEach((el) => el.classList.add("visible"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
   );
-  tgLink.href = `https://t.me/share/url?url=&text=${msg}`;
 
-  overlay.hidden = false;
-  document.body.style.overflow = "hidden";
-  launchConfetti();
-  if (navigator.vibrate) navigator.vibrate([40, 80, 40, 80, 120]);
-});
-
-// Обновляем размер канваса при повороте экрана
-window.addEventListener("resize", () => {
-  if (overlay.hidden) return;
-  if (confettiRAF) cancelAnimationFrame(confettiRAF);
-  launchConfetti();
-});
+  $$(".reveal").forEach((el) => observer.observe(el));
+}
 
