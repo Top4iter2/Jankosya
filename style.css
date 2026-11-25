@@ -773,3 +773,11 @@ button, a {
     transition-duration: 0.001ms !important;
   }
   .intro-title, .intro-small, .intro-sub, #openBtn {
+    opacity: 1 !important;
+    filter: none !important;
+  }
+  .js .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
