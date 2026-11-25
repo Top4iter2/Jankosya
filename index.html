@@ -3,162 +3,135 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Специальный показ ✦ Только для тебя</title>
   <meta name="theme-color" content="#08080A" />
+  <title>Специальный закрытый показ</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <!-- Атмосферный фон -->
-  <div class="ambient" aria-hidden="true">
-    <div class="blob blob--gold"></div>
-    <div class="blob blob--rose"></div>
-    <div class="blob blob--violet"></div>
-    <div class="beam"></div>
-  </div>
+  <!-- Ambient background -->
+  <div class="glow glow-1" aria-hidden="true"></div>
+  <div class="glow glow-2" aria-hidden="true"></div>
+  <div class="glow glow-3" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
 
-  <!-- ========== ЭКРАН 1: ИНТРО / ПРЕМЬЕРА ========== -->
+  <!-- ============ INTRO ============ -->
   <section class="intro" id="intro">
-    <div class="intro__inner">
-      <p class="intro__kicker reveal" style="--d:.2s">ПРЕМЬЕРА СЕЗОНА</p>
-      <h1 class="intro__title">
-        <span class="reveal" style="--d:.5s">Специальный</span>
-        <span class="reveal" style="--d:.75s"><em>закрытый</em></span>
-        <span class="reveal" style="--d:1s">показ</span>
-      </h1>
-      <p class="intro__sub reveal" style="--d:1.35s">
-        Проведён специально для одного зрителя —<br />
-        самой любимой и самой лучшей девушки на свете.
-      </p>
-      <p class="intro__scroll reveal" style="--d:1.6s" aria-hidden="true">✦ ✦ ✦</p>
-      <button class="btn btn--pulse reveal" style="--d:1.8s" id="openBtn" type="button">
-        <span>Открыть приглашение</span>
+    <div class="intro-content">
+      <p class="intro-small">Специальный закрытый показ</p>
+      <h1 class="intro-title">Только для<br />одного зрителя<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
+      <p class="intro-sub">Самая главная премьера этого вечера</p>
+      <button class="btn-primary pulse" id="openBtn">
+        <span class="btn-text">Открыть приглашение</span>
+        <span class="btn-shine" aria-hidden="true"></span>
       </button>
     </div>
   </section>
 
-  <!-- ========== ОСНОВНОЙ КОНТЕНТ ========== -->
-  <main class="content" id="content" hidden>
-
-    <!-- VIP-билет -->
-    <section class="section">
-      <p class="section__kicker">ВАШ ПРОПУСК В ЗАЛ</p>
-
-      <div class="ticket-wrap">
-        <div class="ticket" id="ticket">
-          <div class="ticket__shine" aria-hidden="true"></div>
-
-          <div class="ticket__top">
-            <div class="ticket__head">
-              <span class="ticket__label">VIP ACCESS</span>
-              <span class="ticket__star">✦</span>
-              <span class="ticket__label">ROW 01 · SEAT 01</span>
+  <!-- ============ MAIN ============ -->
+  <main class="main" id="main">
+    <!-- VIP TICKET -->
+    <div class="ticket-wrap">
+      <div class="ticket" id="ticket">
+        <div class="ticket-inner">
+          <div class="ticket-holo" aria-hidden="true"></div>
+          <div class="ticket-content">
+            <div class="ticket-top">
+              <span class="ticket-label">VIP ACCESS</span>
+              <span class="ticket-num">No. 001</span>
             </div>
-            <h2 class="ticket__name" id="guestName">Для самой лучшей девушки</h2>
-            <p class="ticket__movie">«Секретный фильм, который тебе точно понравится»</p>
-            <p class="ticket__hint">Наклони телефон или проведи пальцем по билету ✨</p>
-          </div>
 
-          <div class="ticket__divider" aria-hidden="true">
-            <span class="notch notch--l"></span><span class="dash"></span><span class="notch notch--r"></span>
-          </div>
+            <h2 class="ticket-title">Cinema<br /><em>Invitation</em></h2>
+            <p class="ticket-for">Для самой лучшей девушки на свете</p>
 
-          <div class="ticket__bottom">
-            <div class="ticket__meta">
+            <div class="ticket-divider" aria-hidden="true"></div>
+
+            <div class="ticket-info">
               <div>
-                <span class="ticket__m-label">Дата</span>
-                <span class="ticket__m-value">Суббота, 19:30</span>
+                <span class="t-label">Фильм</span>
+                <span class="t-value">Секретный фильм,<br/>который тебе точно понравится</span>
               </div>
               <div>
-                <span class="ticket__m-label">Кинотеатр</span>
-                <span class="ticket__m-value">ТРЦ «Дордой Плаза»</span>
+                <span class="t-label">Дата и время</span>
+                <span class="t-value">Суббота, 19:30</span>
               </div>
               <div>
-                <span class="ticket__m-label">Статус</span>
-                <span class="ticket__m-value ticket__m-value--gold">ПОДТВЕРЖДЁН ✓</span>
+                <span class="t-label">Место</span>
+                <span class="t-value">ТРЦ «Дордой Плаза»</span>
+              </div>
+              <div>
+                <span class="t-label">Зал</span>
+                <span class="t-value">VIP · Ряд 7 · Место 7</span>
               </div>
             </div>
-            <div class="ticket__barcode" aria-hidden="true"></div>
-            <p class="ticket__serial">№ 000001 · ЛЮБОВЬ · НЕ ПЕРЕДАЁТСЯ</p>
+
+            <div class="ticket-barcode">
+              <div class="barcode-lines" aria-hidden="true"></div>
+              <span class="barcode-text">0420 · 1313 · LOVE</span>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Детали сеанса -->
-    <section class="section">
-      <p class="section__kicker">ДЕТАЛИ СЕАНСА</p>
-      <div class="card">
-        <ul class="details">
-          <li class="details__row">
-            <span class="details__icon">🎬</span>
-            <div><b>Фильм</b><p>«Секретный фильм, который тебе точно понравится»</p></div>
-          </li>
-          <li class="details__row">
-            <span class="details__icon">🗓️</span>
-            <div><b>Дата и время</b><p>Суббота, начало в 19:30</p></div>
-          </li>
-          <li class="details__row">
-            <span class="details__icon">📍</span>
-            <div><b>Место</b><p>Кинотеатр в ТРЦ «Дордой Плаза»</p></div>
-          </li>
-          <li class="details__row">
-            <span class="details__icon">✨</span>
-            <div><b>В программе</b><p>Попкорн, вкусные напитки, лучшие места и моя компания 💛</p></div>
-          </li>
-        </ul>
+    <!-- DETAILS -->
+    <section class="section reveal">
+      <h3 class="section-title">В программе</h3>
+      <div class="details-grid">
+        <div class="detail-card"><span class="emoji">🎬</span><p>Секретный фильм, который тебе точно понравится</p></div>
+        <div class="detail-card"><span class="emoji">🍿</span><p>Попкорн и вкусные напитки</p></div>
+        <div class="detail-card"><span class="emoji">💺</span><p>Лучшие места в зале</p></div>
+        <div class="detail-card"><span class="emoji">🤍</span><p>И моя компания весь вечер</p></div>
       </div>
     </section>
 
-    <!-- Бонусы -->
-    <section class="section">
-      <p class="section__kicker">ЧТО ВЗЯТЬ С СОБОЙ? <span class="section__kicker-note">(тапай — выбирай)</span></p>
+    <!-- BONUSES -->
+    <section class="section reveal">
+      <h3 class="section-title">Выбери, что взять в зал</h3>
+      <p class="section-sub">Тапни по карточкам — я всё организую</p>
       <div class="chips" id="chips">
-        <button class="chip" type="button">🍿 Сладкий попкорн</button>
-        <button class="chip" type="button">🧀 Сырный попкорн</button>
-        <button class="chip" type="button">🥤 Кола / Лимонад</button>
-        <button class="chip" type="button">🍫 Твой любимый шоколад</button>
-        <button class="chip chip--love" type="button">🫂 Объятия весь фильм</button>
+        <button class="chip" data-key="sweet">🍿 Сладкий попкорн</button>
+        <button class="chip" data-key="cheese">🧀 Сырный попкорн</button>
+        <button class="chip" data-key="cola">🥤 Кола / Лимонад</button>
+        <button class="chip" data-key="choco">🍫 Твой любимый шоколад</button>
+        <button class="chip" data-key="hugs">🫶 Объятия весь фильм</button>
       </div>
     </section>
 
-    <!-- Финальный вопрос -->
-    <section class="section section--final">
-      <p class="section__kicker">ФИНАЛЬНЫЙ АКТ</p>
-      <h2 class="final__title">Ты принимаешь<br /><em>приглашение?</em></h2>
-
-      <div class="final__btns" id="finalBtns">
-        <button class="btn btn--big" id="yesBtn" type="button">
-          <span>Да, я согласна! 💛</span>
+    <!-- FINAL -->
+    <section class="section final reveal" id="finalSection">
+      <h3 class="section-title big">Ты принимаешь<br />приглашение?</h3>
+      <div class="final-buttons">
+        <button class="btn-primary btn-yes" id="yesBtn">
+          <span class="btn-text">Да, я согласна!</span>
+          <span class="btn-shine" aria-hidden="true"></span>
         </button>
-        <button class="btn btn--ghost" id="maybeBtn" type="button">Подумаю...</button>
+        <button class="btn-ghost" id="noBtn">Подумаю...</button>
+      </div>
+    </section>
+
+    <!-- CONFIRMED -->
+    <section class="section confirmed hidden" id="confirmedSection">
+      <div class="confirm-card">
+        <div class="check">✓</div>
+        <h3 class="confirm-title">Бронь подтверждена</h3>
+        <p class="confirm-text">
+          Жду тебя в субботу в 19:30.<br />
+          Билет на два сердца уже забронирован 💛
+        </p>
+        <a class="btn-primary btn-msg" id="msgBtn" href="#" target="_blank" rel="noopener">
+          <span class="btn-text">Написать мне 💌</span>
+          <span class="btn-shine" aria-hidden="true"></span>
+        </a>
       </div>
     </section>
   </main>
 
-  <!-- ========== ОВЕРЛЕЙ ПОДТВЕРЖДЕНИЯ ========== -->
-  <div class="overlay" id="overlay" hidden>
-    <canvas class="confetti" id="confetti"></canvas>
-    <div class="overlay__card glass">
-      <div class="overlay__badge">✦</div>
-      <h2 class="overlay__title">Бронь подтверждена!</h2>
-      <p class="overlay__text">
-        Самое лучшее свидание официально забронировано.<br />
-        Жду тебя — место рядом со мной уже занято тобой.
-      </p>
-      <div class="overlay__bonus" id="bonusSummary" hidden></div>
-      <a class="btn btn--big overlay__link" id="tgLink"
-         href="https://t.me/share/url?url=&text=Да, я согласна! 💛 Жду наш поход в кино — спасибо за такое красивое приглашение!"
-         target="_blank" rel="noopener">
-        <span>Написать тебе в Telegram 💌</span>
-      </a>
-      <p class="overlay__foot">P.S. Объятия в зале — бесплатно и безлимитно</p>
-    </div>
-  </div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
 
   <script src="script.js"></script>
 </body>
