@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#08080A" />
-  <title>Специальный закрытый показ</title>
+  <meta name="theme-color" content="#0a0608" />
+  <title>Свидание в кино · для тебя ❤️</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,16 +17,23 @@
   <div class="glow glow-1" aria-hidden="true"></div>
   <div class="glow glow-2" aria-hidden="true"></div>
   <div class="glow glow-3" aria-hidden="true"></div>
+
+  <!-- Floating hearts (ambient) -->
+  <div class="ambient-hearts" aria-hidden="true">
+    <span>❤</span><span>❤</span><span>❤</span>
+    <span>❤</span><span>❤</span><span>❤</span>
+  </div>
+
   <div class="grain" aria-hidden="true"></div>
 
   <!-- ============ INTRO ============ -->
   <section class="intro" id="intro">
     <div class="intro-content">
-      <p class="intro-small">Специальный закрытый показ</p>
-      <h1 class="intro-title">Только для<br />одного зрителя<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
-      <p class="intro-sub">Самая главная премьера этого вечера</p>
+      <p class="intro-small">Специальный закрытый показ · только для тебя</p>
+      <h1 class="intro-title">Один билет.<br />Два сердца<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></h1>
+      <p class="intro-sub">Я подготовил кое-что особенное — просто долистай до конца 💌</p>
       <button class="btn-primary pulse" id="openBtn">
-        <span class="btn-text">Открыть приглашение</span>
+        <span class="btn-text">Открыть приглашение 💌</span>
         <span class="btn-shine" aria-hidden="true"></span>
       </button>
     </div>
@@ -34,21 +41,25 @@
 
   <!-- ============ MAIN ============ -->
   <main class="main" id="main">
-    <!-- VIP TICKET -->
+    <!-- VIP LOVE TICKET -->
     <div class="ticket-wrap">
       <div class="ticket" id="ticket">
         <div class="ticket-inner">
           <div class="ticket-holo" aria-hidden="true"></div>
           <div class="ticket-content">
             <div class="ticket-top">
-              <span class="ticket-label">VIP ACCESS</span>
+              <span class="ticket-label">♥ Love Pass · VIP</span>
               <span class="ticket-num">No. 001</span>
             </div>
 
-            <h2 class="ticket-title">Cinema<br /><em>Invitation</em></h2>
-            <p class="ticket-for">Для самой лучшей девушки на свете</p>
+            <h2 class="ticket-title">Кино<br /><em>для тебя</em></h2>
+            <p class="ticket-for">Для тебя, моя любимая —<br />самого дорогого человека на свете</p>
 
-            <div class="ticket-divider" aria-hidden="true"></div>
+            <div class="ticket-divider" aria-hidden="true">
+              <span class="divider-line"></span>
+              <span class="divider-heart">♥</span>
+              <span class="divider-line"></span>
+            </div>
 
             <div class="ticket-info">
               <div>
@@ -71,7 +82,7 @@
 
             <div class="ticket-barcode">
               <div class="barcode-lines" aria-hidden="true"></div>
-              <span class="barcode-text">0420 · 1313 · LOVE</span>
+              <span class="barcode-text">LOVE · 1313 · FOREVER</span>
             </div>
           </div>
         </div>
@@ -80,12 +91,12 @@
 
     <!-- DETAILS -->
     <section class="section reveal">
-      <h3 class="section-title">В программе</h3>
+      <h3 class="section-title">Наш план на вечер</h3>
       <div class="details-grid">
-        <div class="detail-card"><span class="emoji">🎬</span><p>Секретный фильм, который тебе точно понравится</p></div>
-        <div class="detail-card"><span class="emoji">🍿</span><p>Попкорн и вкусные напитки</p></div>
-        <div class="detail-card"><span class="emoji">💺</span><p>Лучшие места в зале</p></div>
-        <div class="detail-card"><span class="emoji">🤍</span><p>И моя компания весь вечер</p></div>
+        <div class="detail-card"><span class="emoji">🎬</span><p>Секретный фильм — я выбрал его специально для тебя</p></div>
+        <div class="detail-card"><span class="emoji">🍿</span><p>Попкорн, как ты любишь</p></div>
+        <div class="detail-card"><span class="emoji">💺</span><p>Лучшие места — там, где удобно обниматься</p></div>
+        <div class="detail-card"><span class="emoji">❤️</span><p>И я рядом — весь фильм, весь вечер</p></div>
       </div>
     </section>
 
@@ -99,15 +110,17 @@
         <button class="chip" data-key="cola">🥤 Кола / Лимонад</button>
         <button class="chip" data-key="choco">🍫 Твой любимый шоколад</button>
         <button class="chip" data-key="hugs">🫶 Объятия весь фильм</button>
+        <button class="chip" data-key="kiss">💋 Поцелуй перед сеансом</button>
       </div>
     </section>
 
     <!-- FINAL -->
     <section class="section final reveal" id="finalSection">
-      <h3 class="section-title big">Ты принимаешь<br />приглашение?</h3>
+      <p class="final-eyebrow">И самое главное...</p>
+      <h3 class="section-title big">Ты пойдёшь со мной,<br />любимая?</h3>
       <div class="final-buttons">
         <button class="btn-primary btn-yes" id="yesBtn">
-          <span class="btn-text">Да, я согласна!</span>
+          <span class="btn-text">Да, я согласна! ❤️</span>
           <span class="btn-shine" aria-hidden="true"></span>
         </button>
         <button class="btn-ghost" id="noBtn">Подумаю...</button>
@@ -117,11 +130,14 @@
     <!-- CONFIRMED -->
     <section class="section confirmed hidden" id="confirmedSection">
       <div class="confirm-card">
-        <div class="check">✓</div>
-        <h3 class="confirm-title">Бронь подтверждена</h3>
+        <div class="check">♥</div>
+        <h3 class="confirm-title">Свидание подтверждено</h3>
         <p class="confirm-text">
-          Жду тебя в субботу в 19:30.<br />
-          Билет на два сердца уже забронирован 💛
+          Суббота, 19:30. Билет на два сердца<br />
+          уже забронирован ❤️
+        </p>
+        <p class="confirm-quote">
+          «Самое дорогое на свете —<br />просто быть рядом с тобой»
         </p>
         <a class="btn-primary btn-msg" id="msgBtn" href="#" target="_blank" rel="noopener">
           <span class="btn-text">Написать мне 💌</span>
@@ -129,6 +145,8 @@
         </a>
       </div>
     </section>
+
+    <p class="made-with-love">сделано с любовью · только для тебя</p>
   </main>
 
   <canvas id="confetti" aria-hidden="true"></canvas>
