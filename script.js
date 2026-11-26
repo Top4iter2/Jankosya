@@ -30,7 +30,6 @@ openBtn.addEventListener("click", () => {
    ========================================================= */
 const ticket = $("#ticket");
 
-// Target vs current values (eased in rAF loop)
 const target = { rx: 0, ry: 0, mx: 50, my: 50 };
 const current = { rx: 0, ry: 0, mx: 50, my: 50 };
 
@@ -38,7 +37,6 @@ let touchActive = false;
 let orientationActive = false;
 let orientationBase = null;
 
-// Infinite easing loop → smooth, buttery motion
 (function loop() {
   current.rx += (target.rx - current.rx) * 0.12;
   current.ry += (target.ry - current.ry) * 0.12;
@@ -55,7 +53,6 @@ let orientationBase = null;
 /* -------- Touch -------- */
 let touchStartX = 0;
 let touchStartY = 0;
-let touchStartTime = 0;
 
 ticket.addEventListener(
   "touchstart",
@@ -64,7 +61,6 @@ ticket.addEventListener(
     touchActive = true;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-    touchStartTime = Date.now();
   },
   { passive: true }
 );
@@ -78,16 +74,14 @@ ticket.addEventListener(
     const dx = Math.abs(t.clientX - touchStartX);
     const dy = Math.abs(t.clientY - touchStartY);
 
-    // If user is clearly scrolling vertically — don't tilt
     if (dy > dx && dy > 30) return;
 
     const rect = ticket.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
 
-    target.rx = -((t.clientY - cy) / rect.height) * 20; // ±10deg
+    target.rx = -((t.clientY - cy) / rect.height) * 20;
     target.ry = ((t.clientX - cx) / rect.width) * 20;
-
     target.mx = ((t.clientX - rect.left) / rect.width) * 100;
     target.my = ((t.clientY - rect.top) / rect.height) * 100;
   },
@@ -98,7 +92,6 @@ ticket.addEventListener(
   "touchend",
   () => {
     touchActive = false;
-    // Gently return to rest if no orientation is driving
     if (!orientationActive) {
       target.rx = 0;
       target.ry = 0;
@@ -146,7 +139,6 @@ function handleOrientation(e) {
   const dBeta = e.beta - orientationBase.beta;
   const dGamma = e.gamma - orientationBase.gamma;
 
-  // Clamp to reasonable range
   const rx = Math.max(-15, Math.min(15, -dBeta * 0.4));
   const ry = Math.max(-15, Math.min(15, dGamma * 0.6));
 
@@ -167,9 +159,7 @@ function requestOrientationPermission() {
           window.addEventListener("deviceorientation", handleOrientation);
         }
       })
-      .catch(() => {
-        /* Silently fall back to touch tilt */
-      });
+      .catch(() => {});
   } else if (window.DeviceOrientationEvent) {
     window.addEventListener("deviceorientation", handleOrientation);
   }
@@ -196,10 +186,11 @@ const msgBtn = $("#msgBtn");
 
 const NO_MESSAGES = [
   "Подумаю...",
-  "Ошибка, такой опции нет 😌",
+  "Ошибка: такой опции нет 😌",
   "Точно-точно подумаешь?",
-  "Ну пожалуйста 🥺",
-  "Ладно, соглашайся уже!",
+  "Ну пожалуйста, любимая 🥺",
+  "Ладно, соглашайся уже! ❤️",
+  "Моё сердце не выдержит...",
 ];
 let noCount = 0;
 
@@ -220,10 +211,8 @@ yesBtn.addEventListener("click", () => {
   finalSection.classList.add("hidden");
   confirmedSection.classList.remove("hidden");
 
-  // Sweet haptic
   if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 120]);
 
-  // Triple confetti burst
   burstConfetti();
   setTimeout(burstConfetti, 450);
   setTimeout(burstConfetti, 900);
@@ -233,14 +222,14 @@ yesBtn.addEventListener("click", () => {
   }, 350);
 });
 
-/* Pre-filled message link */
+/* Pre-filled romantic message */
 const prefillText = encodeURIComponent(
-  "Привет! ❤️ Я принимаю твоё VIP-приглашение в кино 🍿✨ Уже не могу дождаться 🥰"
+  "Привет, любимый ❤️ Я принимаю твоё приглашение в кино! Уже считаю минуты до нашей встречи 🥰🍿"
 );
 msgBtn.href = `https://wa.me/?text=${prefillText}`;
 
 /* =========================================================
-   5. CONFETTI (hearts + gold sparkles, vanilla Canvas)
+   5. CONFETTI — romantic hearts + rose petals
    ========================================================= */
 const canvas = $("#confetti");
 const ctx = canvas.getContext("2d");
@@ -259,35 +248,37 @@ resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 const particles = [];
+
 const PALETTE = [
-  "#E8C382",
-  "#D4A661",
-  "#F5E5C8",
-  "#D96B8E",
-  "#F2A7BE",
-  "#B8893E",
-  "#FFD9A0",
-  "#8B1538",
+  "#f5c5c8",
+  "#e8a0a8",
+  "#d96b8e",
+  "#f0b8b8",
+  "#f0d8b8",
+  "#e8c382",
+  "#fff0f2",
+  "#ffb0c0",
+  "#8b1538",
 ];
 
 function spawnParticle() {
   const W = window.innerWidth;
   const H = window.innerHeight;
-  const isHeart = Math.random() < 0.6;
+  const isHeart = Math.random() < 0.7;
 
   particles.push({
-    x: W / 2 + (Math.random() - 0.5) * 140,
-    y: H * 0.44 + (Math.random() - 0.5) * 80,
+    x: W / 2 + (Math.random() - 0.5) * 160,
+    y: H * 0.44 + (Math.random() - 0.5) * 90,
     vx: (Math.random() - 0.5) * 16,
     vy: -Math.random() * 15 - 4,
-    size: 7 + Math.random() * 11,
+    size: 8 + Math.random() * 12,
     color: PALETTE[(Math.random() * PALETTE.length) | 0],
     rotation: Math.random() * Math.PI * 2,
     vr: (Math.random() - 0.5) * 0.4,
     life: 1,
     decay: 0.0055 + Math.random() * 0.006,
     isHeart,
-    gravity: 0.24 + Math.random() * 0.2,
+    gravity: 0.22 + Math.random() * 0.2,
     swayOffset: Math.random() * Math.PI * 2,
     swayAmp: 0.4 + Math.random() * 1.6,
     swaySpeed: 0.025 + Math.random() * 0.04,
@@ -316,13 +307,9 @@ function drawHeart(s) {
   ctx.fill();
 }
 
-function drawDiamond(s) {
+function drawPetal(s) {
   ctx.beginPath();
-  ctx.moveTo(0, -s / 2);
-  ctx.lineTo(s / 3, 0);
-  ctx.lineTo(0, s / 2);
-  ctx.lineTo(-s / 3, 0);
-  ctx.closePath();
+  ctx.ellipse(0, 0, s / 3.5, s / 2, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -354,7 +341,7 @@ function animateConfetti() {
     ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.6));
     ctx.fillStyle = p.color;
     if (p.isHeart) drawHeart(p.size);
-    else drawDiamond(p.size);
+    else drawPetal(p.size);
     ctx.restore();
   }
 
@@ -367,7 +354,7 @@ function animateConfetti() {
 }
 
 /* =========================================================
-   6. SCROLL REVEAL (subtle fade-in for sections)
+   6. SCROLL REVEAL
    ========================================================= */
 function initRevealObserver() {
   if (!("IntersectionObserver" in window)) {
@@ -389,4 +376,3 @@ function initRevealObserver() {
 
   $$(".reveal").forEach((el) => observer.observe(el));
 }
-
